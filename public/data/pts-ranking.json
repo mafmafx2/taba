@@ -1,0 +1,39 @@
+{
+  "items": [
+    {
+      "code": "7203",
+      "name": "トヨタ自動車",
+      "price": 2835.5,
+      "change": 42.5,
+      "volume": 18420
+    },
+    {
+      "code": "6758",
+      "name": "ソニーグループ",
+      "price": 14560,
+      "change": -120,
+      "volume": 9830
+    },
+    {
+      "code": "9984",
+      "name": "ソフトバンクグループ",
+      "price": 6945,
+      "change": 85,
+      "volume": 15200
+    },
+    {
+      "code": "8306",
+      "name": "三菱UFJフィナンシャル・グループ",
+      "price": 1379.2,
+      "change": 8.4,
+      "volume": 26350
+    },
+    {
+      "code": "9432",
+      "name": "NTT",
+      "price": 182.9,
+      "change": -1.2,
+      "volume": 42100
+    }
+  ]
+}
