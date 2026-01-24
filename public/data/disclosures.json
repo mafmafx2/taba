@@ -1,0 +1,53 @@
+{
+  "items": [
+    {
+      "code": "7203",
+      "company": "トヨタ自動車",
+      "title": "自己株式取得に係る事項の決定に関するお知らせ",
+      "url": "https://www.release.tdnet.info/inbs/140120240101000000.pdf",
+      "publishedAt": "2024-03-01T16:00:00+09:00"
+    },
+    {
+      "code": "7203",
+      "company": "トヨタ自動車",
+      "title": "中期経営計画の策定について",
+      "url": "https://www.release.tdnet.info/inbs/140120240120000000.pdf",
+      "publishedAt": "2024-02-20T15:30:00+09:00"
+    },
+    {
+      "code": "6758",
+      "company": "ソニーグループ",
+      "title": "連結業績予想の修正に関するお知らせ",
+      "url": "https://www.release.tdnet.info/inbs/140120240205000000.pdf",
+      "publishedAt": "2024-03-05T15:00:00+09:00"
+    },
+    {
+      "code": "6758",
+      "company": "ソニーグループ",
+      "title": "配当方針の変更に関するお知らせ",
+      "url": "https://www.release.tdnet.info/inbs/140120240115000000.pdf",
+      "publishedAt": "2024-02-15T16:10:00+09:00"
+    },
+    {
+      "code": "9984",
+      "company": "ソフトバンクグループ",
+      "title": "決算説明資料",
+      "url": "https://www.release.tdnet.info/inbs/140120240210000000.pdf",
+      "publishedAt": "2024-03-10T15:20:00+09:00"
+    },
+    {
+      "code": "8306",
+      "company": "三菱UFJフィナンシャル・グループ",
+      "title": "自己株式消却に関するお知らせ",
+      "url": "https://www.release.tdnet.info/inbs/140120240128000000.pdf",
+      "publishedAt": "2024-02-28T17:00:00+09:00"
+    },
+    {
+      "code": "9432",
+      "company": "NTT",
+      "title": "固定通信サービスに関する料金改定のお知らせ",
+      "url": "https://www.release.tdnet.info/inbs/140120240131000000.pdf",
+      "publishedAt": "2024-03-01T14:00:00+09:00"
+    }
+  ]
+}

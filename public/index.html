@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PTSランキング＆適時開示リンク一覧</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <div>
+        <p class="badge">Auto Update</p>
+        <h1>PTSランキング＆適時開示リンク</h1>
+        <p class="subtitle">
+          PTSランキングを自動取得し、各銘柄の直近適時開示情報へのリンクをまとめて表示します。
+        </p>
+      </div>
+      <div class="meta">
+        <div>
+          <p class="meta-label">最終更新</p>
+          <p id="last-updated" class="meta-value">--</p>
+        </div>
+        <div>
+          <p class="meta-label">更新間隔</p>
+          <p class="meta-value">60秒</p>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="panel">
+        <div class="panel-header">
+          <h2>PTSランキング</h2>
+          <button id="refresh-button" class="ghost-button">今すぐ更新</button>
+        </div>
+        <div id="status" class="status">読み込み中...</div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>順位</th>
+                <th>銘柄コード</th>
+                <th>銘柄名</th>
+                <th>PTS価格</th>
+                <th>前日比</th>
+                <th>出来高</th>
+                <th>直近の適時開示</th>
+              </tr>
+            </thead>
+            <tbody id="ranking-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel note">
+        <h3>データソースについて</h3>
+        <ul>
+          <li>このデモでは <code>public/data</code> 配下のJSONを参照しています。</li>
+          <li>実運用時はPTSランキングAPIやTDnet/EDINETの公開APIへ差し替えてください。</li>
+          <li>適時開示リンクは銘柄コードでマッチングし、最新3件を表示します。</li>
+        </ul>
+      </section>
+    </main>
+
+    <footer>
+      <p>© 2024 PTS Dashboard Demo</p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
