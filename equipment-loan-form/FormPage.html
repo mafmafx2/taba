@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background-color: #f0f2f5;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1a5276, #2980b9);
+      color: white;
+      padding: 30px;
+      text-align: center;
+      border-radius: 8px 8px 0 0;
+      margin-bottom: 0;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      font-weight: 600;
+    }
+
+    .header p {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-top: 8px;
+    }
+
+    .form-card {
+      background: white;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1a5276;
+      border-bottom: 2px solid #2980b9;
+      padding-bottom: 8px;
+      margin-bottom: 20px;
+      margin-top: 30px;
+    }
+
+    .section-title:first-child {
+      margin-top: 0;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+      font-size: 14px;
+      color: #444;
+    }
+
+    .form-group label .required {
+      color: #e74c3c;
+      font-size: 12px;
+      margin-left: 4px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #2980b9;
+      box-shadow: 0 0 0 3px rgba(41,128,185,0.1);
+    }
+
+    .form-row {
+      display: flex;
+      gap: 16px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    /* 物品選択エリア */
+    .items-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 10px;
+    }
+
+    .item-card {
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      transition: all 0.2s;
+      cursor: pointer;
+      background: #fafafa;
+    }
+
+    .item-card:hover {
+      border-color: #2980b9;
+      box-shadow: 0 2px 8px rgba(41,128,185,0.15);
+    }
+
+    .item-card.selected {
+      border-color: #2980b9;
+      background: #ebf5fb;
+      box-shadow: 0 2px 8px rgba(41,128,185,0.2);
+    }
+
+    .item-card.unavailable {
+      opacity: 0.5;
+      cursor: not-allowed;
+      border-color: #e0e0e0;
+    }
+
+    .item-card.unavailable:hover {
+      border-color: #e0e0e0;
+      box-shadow: none;
+    }
+
+    .item-card .item-checkbox {
+      text-align: left;
+      margin-bottom: 8px;
+    }
+
+    .item-card .item-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .item-card .item-image {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin: 8px auto;
+      display: block;
+      background: #eee;
+    }
+
+    .item-card .item-image.no-image {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #aaa;
+      font-size: 12px;
+      border: 1px dashed #ccc;
+    }
+
+    .item-card .item-name {
+      font-weight: 600;
+      font-size: 14px;
+      margin: 8px 0;
+      color: #333;
+    }
+
+    .item-card .item-available {
+      font-size: 12px;
+      color: #666;
+      margin-bottom: 8px;
+    }
+
+    .item-card .item-available.low-stock {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+
+    .item-card .quantity-select {
+      width: 80px;
+      padding: 6px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      text-align: center;
+    }
+
+    .item-card .quantity-label {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    /* ボタン */
+    .submit-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #1a5276, #2980b9);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.1s, box-shadow 0.2s;
+      margin-top: 30px;
+    }
+
+    .submit-btn:hover {
+      box-shadow: 0 4px 12px rgba(41,128,185,0.3);
+    }
+
+    .submit-btn:active {
+      transform: scale(0.98);
+    }
+
+    .submit-btn:disabled {
+      background: #bbb;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* メッセージ */
+    .message {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin-top: 16px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .message.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+      display: block;
+    }
+
+    .message.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+      display: block;
+    }
+
+    /* ローディング */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255,255,255,0.7);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .loading-overlay.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #e0e0e0;
+      border-top-color: #2980b9;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .date-hint {
+      font-size: 12px;
+      color: #888;
+      margin-top: 4px;
+    }
+
+    .items-loading {
+      text-align: center;
+      padding: 40px;
+      color: #888;
+    }
+
+    /* 完了画面 */
+    .completion {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    .completion .check-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #27ae60;
+      color: white;
+      font-size: 40px;
+      line-height: 80px;
+      margin: 0 auto 20px;
+    }
+
+    .completion h2 {
+      color: #27ae60;
+      margin-bottom: 10px;
+    }
+
+    .completion .app-no {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a5276;
+      margin: 16px 0;
+    }
+
+    .completion .new-btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 30px;
+      background: #2980b9;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+      }
+      .form-card {
+        padding: 20px;
+      }
+      .form-row {
+        flex-direction: column;
+        gap: 0;
+      }
+      .items-container {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<div class="container">
+  <div class="header">
+    <h1>物品借用申請フォーム</h1>
+    <p>借用する物品を選択し、必要事項を入力してください</p>
+  </div>
+
+  <div class="form-card" id="formArea">
+    <form id="applicationForm" onsubmit="return false;">
+
+      <!-- 申請者情報 -->
+      <div class="section-title">申請者情報</div>
+
+      <div class="form-group">
+        <label>申請部署<span class="required">*必須</span></label>
+        <input type="text" id="department" required placeholder="例：教務課">
+      </div>
+
+      <div class="form-group">
+        <label>申請者氏名<span class="required">*必須</span></label>
+        <input type="text" id="applicantName" required placeholder="例：山田 太郎">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>メールアドレス<span class="required">*必須</span></label>
+          <input type="email" id="email" required placeholder="example@university.ac.jp">
+        </div>
+        <div class="form-group">
+          <label>Tel<span class="required">*必須</span></label>
+          <input type="tel" id="tel" required placeholder="内線番号 または 携帯番号">
+        </div>
+      </div>
+
+      <!-- 借用期間 -->
+      <div class="section-title">借用期間</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>借用開始日<span class="required">*必須</span></label>
+          <input type="date" id="startDate" required>
+        </div>
+        <div class="form-group">
+          <label>受取時間<span class="required">*必須</span></label>
+          <select id="pickupTime" required>
+            <option value="">-- 選択 --</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>返却日<span class="required">*必須</span></label>
+          <input type="date" id="returnDate" required>
+        </div>
+        <div class="form-group">
+          <label>返却時間<span class="required">*必須</span></label>
+          <select id="returnTime" required>
+            <option value="">-- 選択 --</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="date-hint">* 日付を選択すると、借用可能な物品と数量が表示されます。</p>
+
+      <!-- 借用物品 -->
+      <div class="section-title">借用物品</div>
+
+      <div id="itemsArea">
+        <div class="items-loading" id="itemsPlaceholder">
+          借用開始日と返却日を選択してください。
+        </div>
+        <div class="items-container" id="itemsContainer" style="display:none;"></div>
+      </div>
+
+      <!-- 送信 -->
+      <button type="button" class="submit-btn" id="submitBtn" onclick="submitForm()" disabled>
+        申請する
+      </button>
+
+      <div class="message" id="messageArea"></div>
+    </form>
+  </div>
+
+  <!-- 完了画面 -->
+  <div class="form-card completion" id="completionArea">
+    <div class="check-icon">&#10003;</div>
+    <h2>申請が完了しました</h2>
+    <p>以下の申請番号で受け付けました。</p>
+    <div class="app-no" id="completionAppNo"></div>
+    <p>申請内容はスプレッドシートに記録されています。</p>
+    <button class="new-btn" onclick="resetForm()">新しい申請を行う</button>
+  </div>
+</div>
+
+<script>
+  // ===== 初期化 =====
+  document.addEventListener('DOMContentLoaded', function() {
+    initTimeSelects();
+    setMinDate();
+
+    document.getElementById('startDate').addEventListener('change', onDateChange);
+    document.getElementById('returnDate').addEventListener('change', onDateChange);
+  });
+
+  /**
+   * 時間選択肢を生成（8:00〜18:00、30分刻み）
+   */
+  function initTimeSelects() {
+    var pickupSelect = document.getElementById('pickupTime');
+    var returnSelect = document.getElementById('returnTime');
+
+    for (var h = 8; h <= 18; h++) {
+      for (var m = 0; m < 60; m += 30) {
+        if (h === 18 && m > 0) break;
+        var time = ('0' + h).slice(-2) + ':' + ('0' + m).slice(-2);
+        var opt1 = document.createElement('option');
+        opt1.value = time;
+        opt1.textContent = time;
+        pickupSelect.appendChild(opt1);
+
+        var opt2 = document.createElement('option');
+        opt2.value = time;
+        opt2.textContent = time;
+        returnSelect.appendChild(opt2);
+      }
+    }
+  }
+
+  /**
+   * 開始日の最小値を今日に設定
+   */
+  function setMinDate() {
+    var today = new Date();
+    var yyyy = today.getFullYear();
+    var mm = ('0' + (today.getMonth() + 1)).slice(-2);
+    var dd = ('0' + today.getDate()).slice(-2);
+    var minDate = yyyy + '-' + mm + '-' + dd;
+
+    document.getElementById('startDate').setAttribute('min', minDate);
+    document.getElementById('returnDate').setAttribute('min', minDate);
+  }
+
+  // ===== 日付変更時の処理 =====
+
+  function onDateChange() {
+    var startDate = document.getElementById('startDate').value;
+    var returnDate = document.getElementById('returnDate').value;
+
+    // 返却日の最小値を開始日に設定
+    if (startDate) {
+      document.getElementById('returnDate').setAttribute('min', startDate);
+      if (returnDate && returnDate < startDate) {
+        document.getElementById('returnDate').value = startDate;
+        returnDate = startDate;
+      }
+    }
+
+    if (startDate && returnDate) {
+      loadItems(startDate, returnDate);
+    }
+  }
+
+  /**
+   * 物品一覧を読み込み
+   */
+  function loadItems(startDate, endDate) {
+    var placeholder = document.getElementById('itemsPlaceholder');
+    var container = document.getElementById('itemsContainer');
+
+    placeholder.textContent = '物品情報を読み込み中...';
+    placeholder.style.display = 'block';
+    container.style.display = 'none';
+
+    google.script.run
+      .withSuccessHandler(function(items) {
+        renderItems(items);
+        placeholder.style.display = 'none';
+        container.style.display = 'grid';
+        updateSubmitButton();
+      })
+      .withFailureHandler(function(err) {
+        placeholder.textContent = '物品情報の読み込みに失敗しました: ' + err.message;
+      })
+      .getAvailableItems(startDate, endDate);
+  }
+
+  /**
+   * 物品カードを描画
+   */
+  function renderItems(items) {
+    var container = document.getElementById('itemsContainer');
+    container.innerHTML = '';
+
+    if (items.length === 0) {
+      container.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:#888;">登録されている物品がありません。</p>';
+      return;
+    }
+
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      var isAvailable = item.available > 0;
+
+      var card = document.createElement('div');
+      card.className = 'item-card' + (isAvailable ? '' : ' unavailable');
+      card.setAttribute('data-item-id', item.id);
+      card.setAttribute('data-item-name', item.name);
+
+      var html = '';
+
+      // チェックボックス
+      html += '<div class="item-checkbox">';
+      html += '<input type="checkbox" id="item_' + item.id + '" '
+            + (isAvailable ? '' : 'disabled') + ' '
+            + 'onchange="toggleItem(this, \'' + item.id + '\')">';
+      html += '</div>';
+
+      // 画像
+      if (item.photoUrl) {
+        html += '<img class="item-image" src="' + escapeHtml(item.photoUrl)
+              + '" alt="' + escapeHtml(item.name) + '" onerror="this.style.display=\'none\'">';
+      } else {
+        html += '<div class="item-image no-image">No Image</div>';
+      }
+
+      // 物品名
+      html += '<div class="item-name">' + escapeHtml(item.name) + '</div>';
+
+      // 残数表示
+      var availClass = item.available <= 2 ? 'item-available low-stock' : 'item-available';
+      html += '<div class="' + availClass + '">'
+            + (isAvailable ? '残数: ' + item.available + ' / ' + item.stock : '在庫なし')
+            + '</div>';
+
+      // 数量選択
+      if (isAvailable) {
+        html += '<select class="quantity-select" id="qty_' + item.id + '" '
+              + 'onchange="updateSubmitButton()" disabled>';
+        for (var q = 1; q <= item.available; q++) {
+          html += '<option value="' + q + '">' + q + '</option>';
+        }
+        html += '</select>';
+        html += '<div class="quantity-label">数量</div>';
+      }
+
+      card.innerHTML = html;
+
+      // カードクリックでチェックボックスを切り替え
+      card.addEventListener('click', (function(itemId, avail) {
+        return function(e) {
+          if (!avail) return;
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+          var cb = document.getElementById('item_' + itemId);
+          cb.checked = !cb.checked;
+          toggleItem(cb, itemId);
+        };
+      })(item.id, isAvailable));
+
+      container.appendChild(card);
+    }
+  }
+
+  /**
+   * 物品の選択状態を切り替え
+   */
+  function toggleItem(checkbox, itemId) {
+    var card = checkbox.closest('.item-card');
+    var qtySelect = document.getElementById('qty_' + itemId);
+
+    if (checkbox.checked) {
+      card.classList.add('selected');
+      if (qtySelect) qtySelect.disabled = false;
+    } else {
+      card.classList.remove('selected');
+      if (qtySelect) {
+        qtySelect.disabled = true;
+        qtySelect.value = '1';
+      }
+    }
+
+    updateSubmitButton();
+  }
+
+  /**
+   * 送信ボタンの有効/無効を更新
+   */
+  function updateSubmitButton() {
+    var selectedItems = document.querySelectorAll('.item-card.selected');
+    var submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = selectedItems.length === 0;
+  }
+
+  // ===== フォーム送信 =====
+
+  function submitForm() {
+    var dept = document.getElementById('department').value.trim();
+    var name = document.getElementById('applicantName').value.trim();
+    var email = document.getElementById('email').value.trim();
+    var tel = document.getElementById('tel').value.trim();
+    var startDate = document.getElementById('startDate').value;
+    var pickupTime = document.getElementById('pickupTime').value;
+    var returnDate = document.getElementById('returnDate').value;
+    var returnTime = document.getElementById('returnTime').value;
+
+    // バリデーション
+    if (!dept || !name || !email || !tel || !startDate || !pickupTime || !returnDate || !returnTime) {
+      showMessage('必須項目をすべて入力してください。', 'error');
+      return;
+    }
+
+    // メールアドレス簡易チェック
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showMessage('有効なメールアドレスを入力してください。', 'error');
+      return;
+    }
+
+    // 選択された物品を収集
+    var selectedCards = document.querySelectorAll('.item-card.selected');
+    if (selectedCards.length === 0) {
+      showMessage('借用物品を1つ以上選択してください。', 'error');
+      return;
+    }
+
+    var items = [];
+    for (var i = 0; i < selectedCards.length; i++) {
+      var card = selectedCards[i];
+      var itemId = card.getAttribute('data-item-id');
+      var itemName = card.getAttribute('data-item-name');
+      var qty = document.getElementById('qty_' + itemId).value;
+      items.push({
+        id: itemId,
+        name: itemName,
+        quantity: parseInt(qty, 10)
+      });
+    }
+
+    var formData = {
+      department: dept,
+      applicantName: name,
+      email: email,
+      tel: tel,
+      startDate: startDate,
+      pickupTime: pickupTime,
+      returnDate: returnDate,
+      returnTime: returnTime,
+      items: items
+    };
+
+    // 送信
+    showLoading(true);
+    document.getElementById('submitBtn').disabled = true;
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        showLoading(false);
+        if (result.success) {
+          showCompletion(result.applicationNo);
+        } else {
+          showMessage(result.message, 'error');
+          document.getElementById('submitBtn').disabled = false;
+        }
+      })
+      .withFailureHandler(function(err) {
+        showLoading(false);
+        showMessage('送信に失敗しました: ' + err.message, 'error');
+        document.getElementById('submitBtn').disabled = false;
+      })
+      .submitApplication(formData);
+  }
+
+  // ===== UI ヘルパー =====
+
+  function showMessage(text, type) {
+    var msgArea = document.getElementById('messageArea');
+    msgArea.textContent = text;
+    msgArea.className = 'message ' + type;
+  }
+
+  function showLoading(show) {
+    document.getElementById('loadingOverlay').className =
+      'loading-overlay' + (show ? ' active' : '');
+  }
+
+  function showCompletion(appNo) {
+    document.getElementById('formArea').style.display = 'none';
+    document.getElementById('completionArea').style.display = 'block';
+    document.getElementById('completionAppNo').textContent = appNo;
+  }
+
+  function resetForm() {
+    document.getElementById('formArea').style.display = 'block';
+    document.getElementById('completionArea').style.display = 'none';
+    document.getElementById('applicationForm').reset();
+    document.getElementById('itemsContainer').innerHTML = '';
+    document.getElementById('itemsContainer').style.display = 'none';
+    document.getElementById('itemsPlaceholder').textContent = '借用開始日と返却日を選択してください。';
+    document.getElementById('itemsPlaceholder').style.display = 'block';
+    document.getElementById('messageArea').className = 'message';
+    document.getElementById('submitBtn').disabled = true;
+    setMinDate();
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+</script>
+
+</body>
+</html>

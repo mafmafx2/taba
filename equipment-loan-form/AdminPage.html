@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+      background-color: #f0f2f5;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #2c3e50, #34495e);
+      color: white;
+      padding: 20px 30px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      font-size: 22px;
+    }
+
+    .header .nav-link {
+      color: white;
+      text-decoration: none;
+      background: rgba(255,255,255,0.15);
+      padding: 8px 16px;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .header .nav-link:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* タブ */
+    .tabs {
+      display: flex;
+      background: white;
+      border-radius: 8px 8px 0 0;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 14px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      border: none;
+      background: white;
+      color: #666;
+      border-bottom: 3px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      background: #f8f9fa;
+    }
+
+    .tab-btn.active {
+      color: #2c3e50;
+      border-bottom-color: #2c3e50;
+    }
+
+    .tab-content {
+      display: none;
+      background: white;
+      border-radius: 0 0 8px 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* 物品管理 */
+    .add-item-form {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      margin-bottom: 20px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+    }
+
+    .add-item-form .field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .add-item-form .field label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 4px;
+    }
+
+    .add-item-form .field input {
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .add-item-form .field.name-field {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .add-item-form .field.stock-field {
+      width: 80px;
+    }
+
+    .add-item-form .field.photo-field {
+      flex: 2;
+      min-width: 200px;
+    }
+
+    .photo-upload-area {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .photo-upload-area input[type="text"] {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .photo-upload-area .upload-btn {
+      position: relative;
+      overflow: hidden;
+      padding: 8px 12px;
+      background: #7f8c8d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .photo-upload-area .upload-btn input[type="file"] {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover {
+      opacity: 0.85;
+    }
+
+    .btn-primary {
+      background: #2c3e50;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn-success {
+      background: #27ae60;
+      color: white;
+    }
+
+    .btn-warning {
+      background: #f39c12;
+      color: white;
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+
+    /* テーブル */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .data-table th {
+      background: #f0f2f5;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid #dee2e6;
+      white-space: nowrap;
+    }
+
+    .data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+      vertical-align: middle;
+    }
+
+    .data-table tr:hover {
+      background: #f8f9fa;
+    }
+
+    .data-table .item-thumb {
+      width: 50px;
+      height: 50px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .data-table .status-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-badge.active {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-badge.inactive {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-badge.applied {
+      background: #cce5ff;
+      color: #004085;
+    }
+
+    .status-badge.cancelled {
+      background: #e2e3e5;
+      color: #383d41;
+    }
+
+    .actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #888;
+    }
+
+    /* 編集モーダル */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .modal h3 {
+      margin-bottom: 16px;
+      color: #2c3e50;
+    }
+
+    .modal .form-group {
+      margin-bottom: 16px;
+    }
+
+    .modal .form-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .modal .form-group input,
+    .modal .form-group select {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .modal .modal-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    /* 通知 */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 12px 20px;
+      border-radius: 6px;
+      color: white;
+      font-size: 14px;
+      z-index: 2000;
+      display: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.success { background: #27ae60; }
+    .toast.error { background: #e74c3c; }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* 台帳プレビュー */
+    .ledger-controls {
+      margin-bottom: 16px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .ledger-table-wrapper {
+      overflow-x: auto;
+    }
+
+    .ledger-table {
+      border-collapse: collapse;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .ledger-table th, .ledger-table td {
+      padding: 6px 10px;
+      border: 1px solid #dee2e6;
+      text-align: center;
+    }
+
+    .ledger-table th {
+      background: #f0f2f5;
+      font-weight: 600;
+    }
+
+    .ledger-table .zero-stock {
+      background: #ffcccc;
+      font-weight: 600;
+    }
+
+    .ledger-table .item-header {
+      background: #2c3e50;
+      color: white;
+    }
+
+    .ledger-table .sub-header {
+      background: #ecf0f1;
+      font-size: 11px;
+    }
+
+    /* フィルター */
+    .filter-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-row select,
+    .filter-row input {
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: 10px; }
+      .add-item-form { flex-direction: column; }
+      .add-item-form .field { width: 100%; }
+      .header { flex-direction: column; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="toast" id="toast"></div>
+
+<!-- 編集モーダル -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>物品を編集</h3>
+    <input type="hidden" id="editRowIndex">
+    <div class="form-group">
+      <label>物品名</label>
+      <input type="text" id="editName">
+    </div>
+    <div class="form-group">
+      <label>写真URL（Google Drive共有URL または 画像URL）</label>
+      <input type="text" id="editPhotoUrl" placeholder="https://drive.google.com/file/d/.../view">
+    </div>
+    <div class="form-group">
+      <label>在庫数（貸出上限）</label>
+      <input type="number" id="editStock" min="0">
+    </div>
+    <div class="form-group">
+      <label>状態</label>
+      <select id="editActive">
+        <option value="true">有効</option>
+        <option value="false">無効</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeEditModal()" style="background:#ccc;">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="header">
+    <h1>物品貸出管理 - 管理画面</h1>
+    <a href="?" class="nav-link">申請フォームを開く</a>
+  </div>
+
+  <!-- タブ -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('items')">物品マスタ管理</button>
+    <button class="tab-btn" onclick="switchTab('applications')">申請データ</button>
+    <button class="tab-btn" onclick="switchTab('ledger')">貸出台帳</button>
+  </div>
+
+  <!-- ===== 物品マスタ管理タブ ===== -->
+  <div class="tab-content active" id="tab-items">
+    <h3 style="margin-bottom:16px;">物品を追加</h3>
+    <div class="add-item-form">
+      <div class="field name-field">
+        <label>物品名</label>
+        <input type="text" id="newItemName" placeholder="例：プロジェクター">
+      </div>
+      <div class="field stock-field">
+        <label>在庫数</label>
+        <input type="number" id="newItemStock" value="1" min="1">
+      </div>
+      <div class="field photo-field">
+        <label>写真</label>
+        <div class="photo-upload-area">
+          <input type="text" id="newItemPhotoUrl" placeholder="画像URLを入力 または ファイルをアップロード">
+          <label class="upload-btn">
+            アップロード
+            <input type="file" accept="image/*" onchange="uploadPhoto(this, 'newItemPhotoUrl')">
+          </label>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="addNewItem()">追加</button>
+    </div>
+
+    <h3 style="margin-bottom:12px;">登録済み物品一覧</h3>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>写真</th>
+          <th>物品名</th>
+          <th>在庫数</th>
+          <th>状態</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="itemsTableBody">
+        <tr><td colspan="6" class="empty-state">読み込み中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 申請データタブ ===== -->
+  <div class="tab-content" id="tab-applications">
+    <div class="filter-row">
+      <select id="statusFilter" onchange="filterApplications()">
+        <option value="">全てのステータス</option>
+        <option value="申請済">申請済</option>
+        <option value="承認済">承認済</option>
+        <option value="貸出中">貸出中</option>
+        <option value="返却済">返却済</option>
+        <option value="キャンセル">キャンセル</option>
+      </select>
+      <button class="btn btn-sm btn-primary" onclick="loadApplications()">更新</button>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>申請No.</th>
+          <th>通番</th>
+          <th>申請日時</th>
+          <th>申請部署</th>
+          <th>申請者</th>
+          <th>期間</th>
+          <th>物品</th>
+          <th>数量</th>
+          <th>ステータス</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="applicationsTableBody">
+        <tr><td colspan="10" class="empty-state">読み込み中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ===== 貸出台帳タブ ===== -->
+  <div class="tab-content" id="tab-ledger">
+    <div class="ledger-controls">
+      <button class="btn btn-primary btn-sm" onclick="refreshLedger()">台帳を更新</button>
+      <span style="font-size:13px;color:#666;">今日から60日間の貸出状況を表示</span>
+    </div>
+
+    <div class="ledger-table-wrapper" id="ledgerTableWrapper">
+      <p class="empty-state">「台帳を更新」ボタンを押して最新の状況を表示してください。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== グローバル変数 =====
+  var allApplications = [];
+
+  // ===== 初期化 =====
+  document.addEventListener('DOMContentLoaded', function() {
+    loadItems();
+  });
+
+  // ===== タブ切替 =====
+  function switchTab(tabName) {
+    var tabs = document.querySelectorAll('.tab-btn');
+    var contents = document.querySelectorAll('.tab-content');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].classList.remove('active');
+    }
+    for (var i = 0; i < contents.length; i++) {
+      contents[i].classList.remove('active');
+    }
+
+    event.target.classList.add('active');
+    document.getElementById('tab-' + tabName).classList.add('active');
+
+    if (tabName === 'applications' && allApplications.length === 0) {
+      loadApplications();
+    }
+  }
+
+  // ===== 物品管理 =====
+  function loadItems() {
+    google.script.run
+      .withSuccessHandler(renderItemsTable)
+      .withFailureHandler(function(err) {
+        document.getElementById('itemsTableBody').innerHTML =
+          '<tr><td colspan="6" class="empty-state">読み込みエラー: ' + err.message + '</td></tr>';
+      })
+      .getAllItems();
+  }
+
+  function renderItemsTable(items) {
+    var tbody = document.getElementById('itemsTableBody');
+
+    if (items.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="empty-state">物品が登録されていません。上のフォームから追加してください。</td></tr>';
+      return;
+    }
+
+    var html = '';
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      var photoHtml = item.photoUrl
+        ? '<img class="item-thumb" src="' + escapeHtml(convertDriveUrlClient(item.photoUrl)) + '" onerror="this.src=\'\';this.alt=\'No Image\'">'
+        : '<span style="color:#aaa;font-size:12px;">未設定</span>';
+
+      var statusClass = item.active ? 'active' : 'inactive';
+      var statusText = item.active ? '有効' : '無効';
+
+      html += '<tr>'
+        + '<td>' + escapeHtml(item.id) + '</td>'
+        + '<td>' + photoHtml + '</td>'
+        + '<td>' + escapeHtml(item.name) + '</td>'
+        + '<td>' + item.stock + '</td>'
+        + '<td><span class="status-badge ' + statusClass + '">' + statusText + '</span></td>'
+        + '<td class="actions">'
+        + '<button class="btn btn-sm btn-primary" onclick=\'openEditModal(' + JSON.stringify(item) + ')\'>編集</button>'
+        + (item.active
+          ? '<button class="btn btn-sm btn-danger" onclick="deactivate(' + item.rowIndex + ')">無効化</button>'
+          : '<button class="btn btn-sm btn-success" onclick="activate(' + item.rowIndex + ', \'' + escapeHtml(item.name) + '\', \'' + escapeHtml(item.photoUrl) + '\', ' + item.stock + ')">有効化</button>')
+        + '</td>'
+        + '</tr>';
+    }
+    tbody.innerHTML = html;
+  }
+
+  function addNewItem() {
+    var name = document.getElementById('newItemName').value.trim();
+    var stock = document.getElementById('newItemStock').value;
+    var photoUrl = document.getElementById('newItemPhotoUrl').value.trim();
+
+    if (!name) {
+      showToast('物品名を入力してください。', 'error');
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          showToast(result.message, 'success');
+          document.getElementById('newItemName').value = '';
+          document.getElementById('newItemStock').value = '1';
+          document.getElementById('newItemPhotoUrl').value = '';
+          loadItems();
+        } else {
+          showToast(result.message || '追加に失敗しました。', 'error');
+        }
+      })
+      .withFailureHandler(function(err) {
+        showToast('エラー: ' + err.message, 'error');
+      })
+      .addItem(name, photoUrl, parseInt(stock, 10));
+  }
+
+  function openEditModal(item) {
+    document.getElementById('editRowIndex').value = item.rowIndex;
+    document.getElementById('editName').value = item.name;
+    document.getElementById('editPhotoUrl').value = item.photoUrl || '';
+    document.getElementById('editStock').value = item.stock;
+    document.getElementById('editActive').value = item.active ? 'true' : 'false';
+    document.getElementById('editModal').classList.add('active');
+  }
+
+  function closeEditModal() {
+    document.getElementById('editModal').classList.remove('active');
+  }
+
+  function saveEdit() {
+    var rowIndex = parseInt(document.getElementById('editRowIndex').value, 10);
+    var name = document.getElementById('editName').value.trim();
+    var photoUrl = document.getElementById('editPhotoUrl').value.trim();
+    var stock = parseInt(document.getElementById('editStock').value, 10);
+    var active = document.getElementById('editActive').value === 'true';
+
+    if (!name) {
+      showToast('物品名を入力してください。', 'error');
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          showToast(result.message, 'success');
+          closeEditModal();
+          loadItems();
+        }
+      })
+      .withFailureHandler(function(err) {
+        showToast('エラー: ' + err.message, 'error');
+      })
+      .updateItem(rowIndex, name, photoUrl, stock, active);
+  }
+
+  function deactivate(rowIndex) {
+    if (!confirm('この物品を無効化しますか？')) return;
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        showToast(result.message, 'success');
+        loadItems();
+      })
+      .withFailureHandler(function(err) {
+        showToast('エラー: ' + err.message, 'error');
+      })
+      .deactivateItem(rowIndex);
+  }
+
+  function activate(rowIndex, name, photoUrl, stock) {
+    google.script.run
+      .withSuccessHandler(function(result) {
+        showToast(result.message, 'success');
+        loadItems();
+      })
+      .withFailureHandler(function(err) {
+        showToast('エラー: ' + err.message, 'error');
+      })
+      .updateItem(rowIndex, name, photoUrl, stock, true);
+  }
+
+  // ===== 写真アップロード =====
+  function uploadPhoto(fileInput, targetInputId) {
+    var file = fileInput.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('ファイルサイズは5MB以下にしてください。', 'error');
+      return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var base64 = e.target.result;
+      showToast('アップロード中...', 'success');
+
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            document.getElementById(targetInputId).value = result.url;
+            showToast('アップロード完了', 'success');
+          } else {
+            showToast(result.message, 'error');
+          }
+        })
+        .withFailureHandler(function(err) {
+          showToast('アップロードエラー: ' + err.message, 'error');
+        })
+        .uploadImageToDrive(base64, file.name);
+    };
+    reader.readAsDataURL(file);
+    fileInput.value = '';
+  }
+
+  // ===== 申請データ =====
+  function loadApplications() {
+    google.script.run
+      .withSuccessHandler(function(apps) {
+        allApplications = apps;
+        filterApplications();
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('applicationsTableBody').innerHTML =
+          '<tr><td colspan="10" class="empty-state">読み込みエラー: ' + err.message + '</td></tr>';
+      })
+      .getApplications(200);
+  }
+
+  function filterApplications() {
+    var statusFilter = document.getElementById('statusFilter').value;
+    var filtered = allApplications;
+
+    if (statusFilter) {
+      filtered = allApplications.filter(function(a) {
+        return a.status === statusFilter;
+      });
+    }
+
+    renderApplicationsTable(filtered);
+  }
+
+  function renderApplicationsTable(apps) {
+    var tbody = document.getElementById('applicationsTableBody');
+
+    if (apps.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="10" class="empty-state">申請データがありません。</td></tr>';
+      return;
+    }
+
+    var html = '';
+    for (var i = 0; i < apps.length; i++) {
+      var a = apps[i];
+      var statusClass = '';
+      switch(a.status) {
+        case '申請済': statusClass = 'applied'; break;
+        case 'キャンセル': statusClass = 'cancelled'; break;
+        default: statusClass = 'active';
+      }
+
+      var startDate = formatDate(a.startDate);
+      var returnDate = formatDate(a.returnDate);
+
+      html += '<tr>'
+        + '<td>' + escapeHtml(a.applicationNo) + '</td>'
+        + '<td>' + a.subNo + '</td>'
+        + '<td style="font-size:12px;">' + escapeHtml(a.timestamp) + '</td>'
+        + '<td>' + escapeHtml(a.department) + '</td>'
+        + '<td>' + escapeHtml(a.applicantName) + '</td>'
+        + '<td style="font-size:12px;">' + startDate + ' ' + escapeHtml(a.pickupTime) + '<br>～ ' + returnDate + ' ' + escapeHtml(a.returnTime) + '</td>'
+        + '<td>' + escapeHtml(a.itemName) + '</td>'
+        + '<td>' + a.quantity + '</td>'
+        + '<td><span class="status-badge ' + statusClass + '">' + escapeHtml(a.status) + '</span></td>'
+        + '<td class="actions">'
+        + '<select onchange="changeStatus(\'' + escapeHtml(a.applicationNo) + '\', this.value)" style="font-size:11px;padding:4px;">'
+        + '<option value="">変更</option>'
+        + '<option value="承認済">承認済</option>'
+        + '<option value="貸出中">貸出中</option>'
+        + '<option value="返却済">返却済</option>'
+        + '<option value="キャンセル">キャンセル</option>'
+        + '</select>'
+        + '</td>'
+        + '</tr>';
+    }
+    tbody.innerHTML = html;
+  }
+
+  function changeStatus(appNo, newStatus) {
+    if (!newStatus) return;
+    if (!confirm('申請No.' + appNo + ' のステータスを「' + newStatus + '」に変更しますか？')) {
+      event.target.value = '';
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(result) {
+        showToast(result.message, result.success ? 'success' : 'error');
+        if (result.success) loadApplications();
+      })
+      .withFailureHandler(function(err) {
+        showToast('エラー: ' + err.message, 'error');
+      })
+      .updateApplicationStatus(appNo, newStatus);
+  }
+
+  // ===== 貸出台帳 =====
+  function refreshLedger() {
+    var wrapper = document.getElementById('ledgerTableWrapper');
+    wrapper.innerHTML = '<p class="empty-state">台帳を更新中...</p>';
+
+    google.script.run
+      .withSuccessHandler(function() {
+        showToast('台帳を更新しました。スプレッドシートの「貸出台帳」シートで詳細を確認できます。', 'success');
+        // 台帳データをスプレッドシートから読み込んで表示
+        loadLedgerPreview();
+      })
+      .withFailureHandler(function(err) {
+        wrapper.innerHTML = '<p class="empty-state">エラー: ' + err.message + '</p>';
+      })
+      .updateLedger();
+  }
+
+  function loadLedgerPreview() {
+    // 管理画面上で台帳の概要を表示
+    google.script.run
+      .withSuccessHandler(function(items) {
+        if (!items || items.length === 0) {
+          document.getElementById('ledgerTableWrapper').innerHTML =
+            '<p class="empty-state">有効な物品が登録されていません。</p>';
+          return;
+        }
+
+        // 簡易台帳: 各物品の今日の在庫状況
+        var html = '<p style="font-size:13px;margin-bottom:12px;color:#666;">'
+                 + '詳細な日別台帳はスプレッドシートの「貸出台帳」シートを参照してください。</p>'
+                 + '<table class="data-table"><thead><tr>'
+                 + '<th>物品名</th><th>総在庫数</th><th>本日の貸出数</th><th>本日の残数</th>'
+                 + '</tr></thead><tbody>';
+
+        for (var i = 0; i < items.length; i++) {
+          var remaining = items[i].available;
+          var lent = items[i].stock - remaining;
+          var rowClass = remaining <= 0 ? ' style="background:#fff3f3;"' : '';
+          html += '<tr' + rowClass + '>'
+                + '<td>' + escapeHtml(items[i].name) + '</td>'
+                + '<td>' + items[i].stock + '</td>'
+                + '<td>' + lent + '</td>'
+                + '<td>' + (remaining <= 0 ? '<strong style="color:red;">' + remaining + '</strong>' : remaining) + '</td>'
+                + '</tr>';
+        }
+        html += '</tbody></table>';
+        document.getElementById('ledgerTableWrapper').innerHTML = html;
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('ledgerTableWrapper').innerHTML =
+          '<p class="empty-state">エラー: ' + err.message + '</p>';
+      })
+      .getAvailableItems(todayStr(), todayStr());
+  }
+
+  // ===== ユーティリティ =====
+
+  function showToast(message, type) {
+    var toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = 'toast ' + type;
+    toast.style.display = 'block';
+    setTimeout(function() {
+      toast.style.display = 'none';
+    }, 4000);
+  }
+
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  function convertDriveUrlClient(url) {
+    if (!url) return '';
+    var match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    if (match) {
+      return 'https://lh3.googleusercontent.com/d/' + match[1];
+    }
+    if (/^[a-zA-Z0-9_-]{20,}$/.test(url)) {
+      return 'https://lh3.googleusercontent.com/d/' + url;
+    }
+    return url;
+  }
+
+  function formatDate(dateVal) {
+    if (!dateVal) return '';
+    if (typeof dateVal === 'string') return dateVal;
+    try {
+      var d = new Date(dateVal);
+      return d.getFullYear() + '/' + ('0' + (d.getMonth()+1)).slice(-2) + '/' + ('0' + d.getDate()).slice(-2);
+    } catch(e) {
+      return String(dateVal);
+    }
+  }
+
+  function todayStr() {
+    var d = new Date();
+    return d.getFullYear() + '-' + ('0'+(d.getMonth()+1)).slice(-2) + '-' + ('0'+d.getDate()).slice(-2);
+  }
+</script>
+
+</body>
+</html>
