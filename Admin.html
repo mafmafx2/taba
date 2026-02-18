@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>物品マスタ管理</title>
+    <style>
+      :root{ --bg:#f3f6ff; --card:#ffffffd6; --line:#dbe4ff; --text:#1f2a44; --muted:#60719a; --primary:#4f46e5; --primary2:#7c3aed; }
+      *{ box-sizing:border-box; }
+      body{ margin:0; font-family:"Inter","Noto Sans JP",sans-serif; background:radial-gradient(1000px 600px at 0% -10%, #dbe4ff 0%, transparent 55%), var(--bg); color:var(--text); }
+      .container{ max-width:1100px; margin:24px auto 40px; background:var(--card); border:1px solid #e4e9ff; border-radius:22px; padding:20px; box-shadow:0 12px 30px rgba(62,82,140,.12); }
+      h1{ margin:0 0 8px; }
+      h2{ margin:0 0 8px; font-size:18px; }
+      p{ color:var(--muted); }
+      .section{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; margin-top:14px; }
+      table{ width:100%; border-collapse:separate; border-spacing:0; background:#fff; border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+      th,td{ border-bottom:1px solid #eef2ff; padding:8px; font-size:13px; vertical-align:top; }
+      th{ background:#f4f7ff; text-align:left; color:#45558a; }
+      input[type="text"], input[type="number"], input[type="date"], input[type="email"]{ width:100%; border:1px solid #d7def7; border-radius:10px; padding:7px 8px; }
+      .actions{ margin-top:12px; display:flex; gap:10px; align-items:flex-end; flex-wrap: wrap; }
+      button{ border:0; border-radius:12px; padding:9px 14px; color:#fff; font-weight:700; cursor:pointer; background:linear-gradient(135deg,var(--primary),var(--primary2)); box-shadow:0 8px 18px rgba(79,70,229,.25); }
+      .secondary{ background:#5f6f96; box-shadow:none; }
+      .msg{ margin-top:8px; font-weight:700; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>管理画面</h1>
+
+      <div class="section">
+        <h2>物品マスタ</h2>
+        <p>物品の追加/削除、初期在庫（数量上限）、有効/無効を管理します。</p>
+        <table id="masterTable">
+          <thead><tr><th>物品コード</th><th>物品名</th><th>初期在庫</th><th>有効</th><th>削除</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="actions">
+          <button type="button" class="secondary" onclick="addMasterRow()">行追加</button>
+          <button type="button" onclick="saveMaster()">保存</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>台帳日付管理</h2>
+        <p>開始日～終了日を指定して、日別台帳に日付・曜日と貸出数/残数を反映します。</p>
+        <div class="actions" style="margin-top:0;">
+          <div>
+            <label style="font-size:12px;color:#45558a;display:block;margin-bottom:4px;">日別台帳 開始日</label>
+            <input id="ledgerStartDate" type="date" />
+          </div>
+          <div>
+            <label style="font-size:12px;color:#45558a;display:block;margin-bottom:4px;">日別台帳 終了日</label>
+            <input id="ledgerEndDate" type="date" />
+          </div>
+          <div><button type="button" onclick="reflectLedgerDates()">日付を台帳に反映</button></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>管理者登録</h2>
+        <p>申請通知メールの送信先管理者（複数可）を登録します。</p>
+        <table id="managerTable">
+          <thead><tr><th>氏名</th><th>メールアドレス</th><th>有効</th><th>削除</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <div class="actions">
+          <button type="button" class="secondary" onclick="addManagerRow()">行追加</button>
+          <button type="button" onclick="saveManagers()">管理者登録</button>
+        </div>
+      </div>
+
+      <p id="msg" class="msg"></p>
+    </div>
+
+    <script>
+      function load() {
+        google.script.run.withSuccessHandler(renderMaster).withFailureHandler(showError).getMasterData();
+        google.script.run.withSuccessHandler(renderManagers).withFailureHandler(showError).getManagerData();
+      }
+
+      function renderMaster(items) {
+        const tbody = document.querySelector('#masterTable tbody');
+        tbody.innerHTML = '';
+        items.forEach((item) => addMasterRow(item));
+      }
+
+      function addMasterRow(item = { code: '', name: '', stock: 0, active: true }) {
+        const tbody = document.querySelector('#masterTable tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input type="text" class="code" value="${item.code}"></td>
+          <td><input type="text" class="name" value="${item.name}"></td>
+          <td><input type="number" class="stock" min="0" value="${item.stock}"></td>
+          <td style="text-align:center;"><input type="checkbox" class="active" ${item.active ? 'checked' : ''}></td>
+          <td style="text-align:center;"><button type="button" class="secondary" onclick="this.closest('tr').remove()">削除</button></td>`;
+        tbody.appendChild(tr);
+      }
+
+      function saveMaster() {
+        const rows = [...document.querySelectorAll('#masterTable tbody tr')];
+        const items = rows.map((tr) => ({
+          code: tr.querySelector('.code').value.trim(),
+          name: tr.querySelector('.name').value.trim(),
+          stock: Number(tr.querySelector('.stock').value || 0),
+          active: tr.querySelector('.active').checked,
+        })).filter((x) => x.code && x.name);
+
+        google.script.run
+          .withSuccessHandler(() => showSuccess('物品マスタを保存しました。'))
+          .withFailureHandler(showError)
+          .saveMasterData(items);
+      }
+
+      function reflectLedgerDates() {
+        const startDate = document.getElementById('ledgerStartDate').value;
+        const endDate = document.getElementById('ledgerEndDate').value;
+
+        google.script.run
+          .withSuccessHandler((res) => showSuccess(res.message || '台帳へ反映しました。'))
+          .withFailureHandler(showError)
+          .reflectLedgerDateRange(startDate, endDate);
+      }
+
+      function renderManagers(managers) {
+        const tbody = document.querySelector('#managerTable tbody');
+        tbody.innerHTML = '';
+        managers.forEach((m) => addManagerRow(m));
+      }
+
+      function addManagerRow(manager = { name: '', email: '', active: true }) {
+        const tbody = document.querySelector('#managerTable tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input type="text" class="manager-name" value="${manager.name || ''}"></td>
+          <td><input type="email" class="manager-email" value="${manager.email || ''}"></td>
+          <td style="text-align:center;"><input type="checkbox" class="manager-active" ${manager.active ? 'checked' : ''}></td>
+          <td style="text-align:center;"><button type="button" class="secondary" onclick="this.closest('tr').remove()">削除</button></td>`;
+        tbody.appendChild(tr);
+      }
+
+      function saveManagers() {
+        const rows = [...document.querySelectorAll('#managerTable tbody tr')];
+        const managers = rows.map((tr) => ({
+          name: tr.querySelector('.manager-name').value.trim(),
+          email: tr.querySelector('.manager-email').value.trim(),
+          active: tr.querySelector('.manager-active').checked,
+        })).filter((m) => m.name && m.email);
+
+        google.script.run
+          .withSuccessHandler((res) => showSuccess(res.message || '管理者を登録しました。'))
+          .withFailureHandler(showError)
+          .saveManagerData(managers);
+      }
+
+      function showSuccess(text) {
+        const msg = document.getElementById('msg');
+        msg.textContent = text;
+        msg.style.color = '#0f5132';
+        load();
+      }
+
+      function showError(err) {
+        const msg = document.getElementById('msg');
+        msg.textContent = err.message || err;
+        msg.style.color = '#b42318';
+      }
+
+      window.onload = load;
+    </script>
+  </body>
+</html>
