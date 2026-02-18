@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>物品貸出申請フォーム</title>
+    <style>
+      :root { --bg:#f3f6ff; --card:#ffffffcc; --line:#dbe4ff; --text:#1f2a44; --muted:#60719a; --primary:#4f46e5; --primary2:#7c3aed; }
+      * { box-sizing: border-box; }
+      body { margin:0; font-family:"Inter","Noto Sans JP",sans-serif; background:radial-gradient(1200px 600px at 0% -10%, #dbe4ff 0%, transparent 55%), var(--bg); color:var(--text); }
+      .container { max-width:1100px; margin:24px auto 40px; padding:24px; border:1px solid #e4e9ff; border-radius:22px; background:var(--card); box-shadow:0 12px 30px rgba(62,82,140,.12); }
+      h1 { margin:0 0 6px; font-size:28px; } .muted { color:var(--muted); font-size:13px; }
+      .grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); margin-top:16px; }
+      .field { background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px; }
+      label { font-size:12px; color:#4f5f86; display:block; margin-bottom:6px; font-weight:700; }
+      input, select { width:100%; border:1px solid #d7def7; border-radius:10px; padding:9px 10px; font-size:14px; color:var(--text); background:#fff; }
+      .time-pair { display:flex; gap:8px; align-items:center; }
+      .actions { margin-top:18px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+      button { border:0; border-radius:12px; padding:10px 16px; color:#fff; font-weight:700; cursor:pointer; background:linear-gradient(135deg,var(--primary),var(--primary2)); box-shadow:0 8px 18px rgba(79,70,229,.25); }
+      button.secondary { background:#5f6f96; box-shadow:none; }
+      .items { margin-top:16px; display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
+      .item-card { border:1px solid var(--line); border-radius:16px; background:#fff; padding:12px; }
+      .loading-note { margin-top:10px; font-weight:700; color:#7a4b00; }
+      .complete-wrap { max-width:920px; margin:0 auto; }
+      .complete-card { background:#fff; border:1px solid var(--line); border-radius:18px; padding:20px; box-shadow:0 12px 30px rgba(62,82,140,.12); }
+      .complete-title { margin:0 0 8px; color:#0f5132; }
+      .complete-grid { display:grid; grid-template-columns:170px 1fr; gap:8px 12px; margin-top:12px; font-size:14px; }
+      .complete-grid .k { color:#5f6f96; font-weight:700; }
+      .complete-items { margin-top:14px; border-top:1px solid #e5eafc; padding-top:10px; }
+      .pill { display:inline-block; background:#eef2ff; border:1px solid #dbe4ff; border-radius:999px; padding:6px 10px; margin:4px 6px 0 0; font-size:13px; }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="formPage">
+      <h1>物品貸出申請フォーム</h1>
+      <p class="muted">借用開始日と返却日を入力後、「借用物品を再読込」を押してください。</p>
+      <p class="muted">物品画像一覧（別資料）: <a href="https://kanagawa-u.box.com/s/gp9fhj9hrlbysisik7tm77379xx8x5ho" target="_blank" rel="noopener noreferrer">https://kanagawa-u.box.com/s/gp9fhj9hrlbysisik7tm77379xx8x5ho</a></p>
+
+      <div class="grid">
+        <div class="field"><label>申請部署</label><input id="department" /></div>
+        <div class="field"><label>申請者氏名</label><input id="applicant" /></div>
+        <div class="field"><label>メールアドレス</label><input id="email" type="email" /></div>
+        <div class="field"><label>Tel</label><input id="tel" /></div>
+        <div class="field"><label>借用開始日</label><input id="startDate" type="date" /></div>
+        <div class="field"><label>受取時間</label><div class="time-pair"><select id="pickupHour"></select><span>:</span><select id="pickupMinute"></select></div></div>
+        <div class="field"><label>返却日</label><input id="endDate" type="date" /></div>
+        <div class="field"><label>返却時間</label><div class="time-pair"><select id="returnHour"></select><span>:</span><select id="returnMinute"></select></div></div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="secondary" onclick="loadItems()">借用物品を再読込</button>
+        <span class="muted">※ 数量は必要数を選択してください。</span>
+      </div>
+
+      <div id="items" class="items"></div>
+
+      <div class="actions"><button id="submitBtn" type="button" onclick="submitForm()">申請する</button></div>
+      <div id="message"></div>
+      <div id="loadingNote" class="loading-note" style="display:none;">申請中です。しばらくお待ちください・・・</div>
+    </div>
+
+    <div class="container" id="completionPage" style="display:none;">
+      <div class="complete-wrap">
+        <div class="complete-card">
+          <h2 class="complete-title">申請が完了しました</h2>
+          <p class="muted">入力したメールアドレスにも同じ申請内容を送信しました。</p>
+          <div class="complete-grid" id="completeGrid"></div>
+          <div class="complete-items">
+            <div class="k">借用物品</div>
+            <div id="completeItems"></div>
+          </div>
+          <div class="actions" style="margin-top:16px;"><button type="button" onclick="restartForm()">続けて申請する</button></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let currentItems = [];
+
+      function pad2(num){ return String(num).padStart(2, '0'); }
+      function initTimeDropdowns(){
+        const hourOptions = Array.from({ length: 24 }, (_, i) => `<option value="${pad2(i)}">${pad2(i)}</option>`).join('');
+        const minuteOptions = ['00','10','20','30','40','50'].map((m)=>`<option value="${m}">${m}</option>`).join('');
+        ['pickupHour','returnHour'].forEach((id)=>document.getElementById(id).innerHTML=hourOptions);
+        ['pickupMinute','returnMinute'].forEach((id)=>document.getElementById(id).innerHTML=minuteOptions);
+        document.getElementById('pickupHour').value='09'; document.getElementById('pickupMinute').value='00';
+        document.getElementById('returnHour').value='17'; document.getElementById('returnMinute').value='00';
+      }
+      function getSelectedTime(prefix){ return `${document.getElementById(`${prefix}Hour`).value}:${document.getElementById(`${prefix}Minute`).value}`; }
+      function escapeHtml(value){ return String(value||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
+
+      function loadItems(){
+        google.script.run.withSuccessHandler(renderItems).withFailureHandler(showError)
+          .getAvailableItems(document.getElementById('startDate').value, document.getElementById('endDate').value);
+      }
+
+      function renderItems(items){
+        currentItems = items;
+        const root = document.getElementById('items');
+        root.innerHTML = '';
+        items.forEach((item, idx)=>{
+          const options = ['<option value="0">選択なし</option>'];
+          for (let q=1; q <= (item.maxSelectable||0); q++) options.push(`<option value="${q}">${q}</option>`);
+          const card = document.createElement('div');
+          card.className='item-card';
+          card.innerHTML = `<div><strong>${escapeHtml(item.name)}</strong></div><div style="margin-top:10px;"><label>数量</label><select id="qty-${idx}" ${item.maxSelectable===0?'disabled':''}>${options.join('')}</select></div>`;
+          root.appendChild(card);
+        });
+      }
+
+      function setSubmittingState(isSubmitting){
+        document.getElementById('loadingNote').style.display = isSubmitting ? 'block' : 'none';
+        document.getElementById('submitBtn').disabled = isSubmitting;
+      }
+
+      function submitForm(){
+        const payload = {
+          department: document.getElementById('department').value,
+          applicant: document.getElementById('applicant').value,
+          email: document.getElementById('email').value,
+          tel: document.getElementById('tel').value,
+          startDate: document.getElementById('startDate').value,
+          pickupTime: getSelectedTime('pickup'),
+          endDate: document.getElementById('endDate').value,
+          returnTime: getSelectedTime('return'),
+          items: [],
+        };
+        currentItems.forEach((item, idx)=>{
+          const q = Number(document.getElementById(`qty-${idx}`).value || 0);
+          if (q>0) payload.items.push({ code:item.code, quantity:q });
+        });
+
+        setSubmittingState(true);
+        google.script.run
+          .withSuccessHandler((res)=>{ setSubmittingState(false); renderCompletionScreen(res.summary); })
+          .withFailureHandler((err)=>{ setSubmittingState(false); showError(err); })
+          .submitApplication(payload);
+      }
+
+      function renderCompletionScreen(summary){
+        const grid = document.getElementById('completeGrid');
+        grid.innerHTML = `
+          <div class="k">申請No</div><div>${escapeHtml(summary.applicationNo)}</div>
+          <div class="k">申請部署</div><div>${escapeHtml(summary.department)}</div>
+          <div class="k">申請者氏名</div><div>${escapeHtml(summary.applicant)}</div>
+          <div class="k">メールアドレス</div><div>${escapeHtml(summary.email)}</div>
+          <div class="k">Tel</div><div>${escapeHtml(summary.tel)}</div>
+          <div class="k">借用開始日</div><div>${escapeHtml(summary.startDate)}</div>
+          <div class="k">受取時間</div><div>${escapeHtml(summary.pickupTime)}</div>
+          <div class="k">返却日</div><div>${escapeHtml(summary.endDate)}</div>
+          <div class="k">返却時間</div><div>${escapeHtml(summary.returnTime)}</div>`;
+
+        document.getElementById('completeItems').innerHTML = (summary.items || [])
+          .map((item) => `<span class="pill">${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}</span>`)
+          .join('') || '<span class="muted">なし</span>';
+
+        document.getElementById('formPage').style.display = 'none';
+        document.getElementById('completionPage').style.display = 'block';
+      }
+
+      function restartForm(){
+        document.getElementById('completionPage').style.display = 'none';
+        document.getElementById('formPage').style.display = 'block';
+        setSubmittingState(false);
+        document.getElementById('message').textContent = '';
+        document.getElementById('items').querySelectorAll('select[id^="qty-"]').forEach((sel)=>{ sel.value = '0'; });
+      }
+
+      function showError(err){
+        document.getElementById('message').textContent = err.message || err;
+        document.getElementById('message').style.color = '#b42318';
+      }
+
+      window.onload = () => { initTimeDropdowns(); loadItems(); };
+    </script>
+  </body>
+</html>
