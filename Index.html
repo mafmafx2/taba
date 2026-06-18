@@ -109,8 +109,8 @@
   <body>
     <div class="container" id="formPage">
       <h1>物品借用申請フォーム</h1>
-      <p class="muted">借用開始日と返却日を入力後、「借用物品を再読込」を押してください。</p>
-      <p class="muted">物品画像一覧（別資料）: <a href="https://kanagawa-u.box.com/s/gp9fhj9hrlbysisik7tm77379xx8x5ho" target="_blank" rel="noopener noreferrer">https://kanagawa-u.box.com/s/gp9fhj9hrlbysisik7tm77379xx8x5ho</a></p>
+      <p class="muted">総務課管理の物品借用を希望の方はこのフォームから事前申請を行ってください。<br>借用対象の物品に関しては以下のURLからご確認ください。<br>各物品の受取・返却場所をご確認の上、申請した日時にて受取・返却を行ってください。<br>総務課の開室時間は平日9:00～16:30ですので、総務課窓口にて受取・返却を行う物品に関しては開室時間中に総務課までお越しください。</p>
+      <p class="muted">貸出対象物品一覧（別資料）: <a href="https://kanagawa-u.box.com/s/gp9fhj9hrlbysisik7tm77379xx8x5ho" target="_blank" rel="noopener noreferrer">https://kanagawa-u.box.com/s/gp9fhj9hrlbysisik7tm77379xx8x5ho</a></p>
 
       <div class="section-title">申請者情報</div>
       <div class="grid">
@@ -171,6 +171,29 @@
       }
       function getSelectedTime(prefix){ return `${document.getElementById(`${prefix}Hour`).value}:${document.getElementById(`${prefix}Minute`).value}`; }
       function escapeHtml(value){ return String(value||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
+      function getTodayYmd(){
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+      function setupDateConstraints(){
+        const startInput = document.getElementById('startDate');
+        const endInput = document.getElementById('endDate');
+        const today = getTodayYmd();
+
+        startInput.min = today;
+        endInput.min = startInput.value || today;
+
+        startInput.addEventListener('change', () => {
+          const minEnd = startInput.value || today;
+          endInput.min = minEnd;
+          if (endInput.value && endInput.value < minEnd) {
+            endInput.value = minEnd;
+          }
+        });
+      }
 
       function loadItems(){
         google.script.run.withSuccessHandler(renderItems).withFailureHandler(showError)
@@ -270,7 +293,7 @@
         document.getElementById('message').style.color = '#b42318';
       }
 
-      window.onload = () => { initTimeDropdowns(); loadItems(); };
+      window.onload = () => { initTimeDropdowns(); setupDateConstraints(); loadItems(); };
     </script>
   </body>
 </html>
