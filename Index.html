@@ -38,6 +38,7 @@
       }
       h1 { margin:0 0 8px; font-size:32px; letter-spacing:.02em; }
       .muted { color:var(--muted); font-size:13px; line-height:1.6; }
+      .field-note { margin-top:6px; font-size:11px; color:#7a87ad; line-height:1.4; }
       .section-title { margin:20px 0 10px; font-size:15px; color:#42558a; font-weight:800; }
       .grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); margin-top:16px; }
       .field { background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px; box-shadow:0 4px 14px rgba(81,95,155,.06); }
@@ -118,7 +119,7 @@
         <div class="field"><label>メールアドレス</label><input id="email" type="email" /></div>
         <div class="field"><label>Tel</label><input id="tel" /></div>
         <div class="field"><label>使用目的</label><input id="usagePurpose" /></div>
-        <div class="field"><label>責任者氏名 <span class="muted">※ 事務局からの申請の場合は部署長名</span></label><input id="responsiblePerson" /></div>
+        <div class="field"><label>責任者氏名</label><input id="responsiblePerson" /><div class="field-note">※ 事務局からの申請の場合は部署長名</div></div>
       </div>
 
       <div class="section-title">借用日程</div>

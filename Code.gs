@@ -413,7 +413,7 @@ function buildApplicationSummary_(applicationNo, formData, masterMap, startDate,
 
 function sendApplicationMail_(summary) {
   const itemLines = summary.items
-    .map((item) => `・${item.name} × ${item.quantity}`)
+    .map((item) => `・${item.name} × ${item.quantity}（受取・返却場所: ${item.pickupReturnPlace || '未設定'}）`)
     .join('\n');
 
   const subject = `【物品貸出申請受付】申請No: ${summary.applicationNo}`;
@@ -449,7 +449,9 @@ function sendAdminNotificationMail_(summary) {
   const to = getActiveManagerRecipient_();
   if (!to) return;
 
-  const itemLines = summary.items.map((item) => `・${item.name} × ${item.quantity}`).join('\n');
+  const itemLines = summary.items
+    .map((item) => `・${item.name} × ${item.quantity}（受取・返却場所: ${item.pickupReturnPlace || '未設定'}）`)
+    .join('\n');
   const subject = `【管理者通知】新規物品貸出申請 No:${summary.applicationNo}`;
   const body = [
     '新しい物品貸出申請が登録されました。',
