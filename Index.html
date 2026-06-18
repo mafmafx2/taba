@@ -5,29 +5,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>物品借用申請フォーム</title>
     <style>
-      :root { --bg:#f3f6ff; --card:#ffffffcc; --line:#dbe4ff; --text:#1f2a44; --muted:#60719a; --primary:#4f46e5; --primary2:#7c3aed; }
+      :root {
+        --bg:#eef3ff;
+        --card:#ffffffd9;
+        --line:#dbe4ff;
+        --text:#1f2a44;
+        --muted:#60719a;
+        --primary:#4f46e5;
+        --primary2:#7c3aed;
+        --accent:#0ea5e9;
+        --ok:#0f5132;
+      }
       * { box-sizing: border-box; }
-      body { margin:0; font-family:"Inter","Noto Sans JP",sans-serif; background:radial-gradient(1200px 600px at 0% -10%, #dbe4ff 0%, transparent 55%), var(--bg); color:var(--text); }
-      .container { max-width:1100px; margin:24px auto 40px; padding:24px; border:1px solid #e4e9ff; border-radius:22px; background:var(--card); box-shadow:0 12px 30px rgba(62,82,140,.12); }
-      h1 { margin:0 0 6px; font-size:28px; } .muted { color:var(--muted); font-size:13px; }
+      body {
+        margin:0;
+        font-family:"Inter","Noto Sans JP",sans-serif;
+        background:
+          radial-gradient(1200px 600px at 0% -10%, #dbe4ff 0%, transparent 55%),
+          radial-gradient(1000px 500px at 100% 0%, #e9d5ff 0%, transparent 55%),
+          var(--bg);
+        color:var(--text);
+      }
+      .container {
+        max-width:1100px;
+        margin:24px auto 40px;
+        padding:26px;
+        border:1px solid #e4e9ff;
+        border-radius:24px;
+        background:var(--card);
+        backdrop-filter: blur(8px);
+        box-shadow:0 20px 44px rgba(62,82,140,.14);
+      }
+      h1 { margin:0 0 8px; font-size:32px; letter-spacing:.02em; }
+      .muted { color:var(--muted); font-size:13px; line-height:1.6; }
+      .section-title { margin:20px 0 10px; font-size:15px; color:#42558a; font-weight:800; }
       .grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); margin-top:16px; }
-      .field { background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px; }
+      .field { background:#fff; border:1px solid var(--line); border-radius:14px; padding:10px; box-shadow:0 4px 14px rgba(81,95,155,.06); }
       label { font-size:12px; color:#4f5f86; display:block; margin-bottom:6px; font-weight:700; }
-      input, select { width:100%; border:1px solid #d7def7; border-radius:10px; padding:9px 10px; font-size:14px; color:var(--text); background:#fff; }
+      input, select { width:100%; border:1px solid #d7def7; border-radius:10px; padding:9px 10px; font-size:14px; color:var(--text); background:#fff; transition:border-color .2s, box-shadow .2s; }
+      input:focus, select:focus { outline:none; border-color:#6366f1; box-shadow:0 0 0 4px rgba(99,102,241,.15); }
       .time-pair { display:flex; gap:8px; align-items:center; }
+      .date-time-row { display:grid; margin-top:10px; gap:12px; grid-template-columns:repeat(4, minmax(0,1fr)); }
       .actions { margin-top:18px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-      button { border:0; border-radius:12px; padding:10px 16px; color:#fff; font-weight:700; cursor:pointer; background:linear-gradient(135deg,var(--primary),var(--primary2)); box-shadow:0 8px 18px rgba(79,70,229,.25); }
+      button { border:0; border-radius:12px; padding:10px 16px; color:#fff; font-weight:700; cursor:pointer; background:linear-gradient(135deg,var(--primary),var(--primary2)); box-shadow:0 8px 18px rgba(79,70,229,.25); transition:transform .15s, box-shadow .15s; }
+      button:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgba(79,70,229,.28); }
       button.secondary { background:#5f6f96; box-shadow:none; }
       .items { margin-top:16px; display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:12px; }
-      .item-card { border:1px solid var(--line); border-radius:16px; background:#fff; padding:12px; }
+      .item-card { border:1px solid var(--line); border-radius:16px; background:#fff; padding:14px; box-shadow:0 8px 18px rgba(81,95,155,.08); }
+      .item-name { font-size:16px; margin-bottom:8px; }
+      .pickup-place-badge {
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        font-size:12px;
+        font-weight:800;
+        color:#0c4a6e;
+        background:#e0f2fe;
+        border:1px solid #7dd3fc;
+        border-radius:999px;
+        padding:6px 10px;
+      }
+      .pickup-place-badge::before { content:'📍'; }
       .loading-note { margin-top:10px; font-weight:700; color:#7a4b00; }
       .complete-wrap { max-width:920px; margin:0 auto; }
-      .complete-card { background:#fff; border:1px solid var(--line); border-radius:18px; padding:20px; box-shadow:0 12px 30px rgba(62,82,140,.12); }
-      .complete-title { margin:0 0 8px; color:#0f5132; }
+      .complete-card { background:#fff; border:1px solid var(--line); border-radius:20px; padding:22px; box-shadow:0 16px 34px rgba(62,82,140,.12); }
+      .complete-title { margin:0 0 8px; color:var(--ok); font-size:28px; }
       .complete-grid { display:grid; grid-template-columns:170px 1fr; gap:8px 12px; margin-top:12px; font-size:14px; }
       .complete-grid .k { color:#5f6f96; font-weight:700; }
-      .complete-items { margin-top:14px; border-top:1px solid #e5eafc; padding-top:10px; }
-      .pill { display:inline-block; background:#eef2ff; border:1px solid #dbe4ff; border-radius:999px; padding:6px 10px; margin:4px 6px 0 0; font-size:13px; }
+      .complete-items { margin-top:14px; border-top:1px solid #e5eafc; padding-top:14px; }
+      .complete-item-card {
+        background:linear-gradient(135deg, #f8faff 0%, #eef4ff 100%);
+        border:1px solid #d4e0ff;
+        border-radius:14px;
+        padding:12px;
+      }
+      .complete-item-head { display:flex; justify-content:space-between; gap:10px; align-items:center; font-weight:800; }
+      .complete-item-qty { color:#4338ca; background:#eef2ff; border:1px solid #c7d2fe; border-radius:999px; padding:4px 10px; font-size:12px; }
+      .complete-item-place { margin-top:6px; font-size:13px; color:#0c4a6e; font-weight:700; }
+      .pickup-guide {
+        margin-top:12px;
+        background:#fff7ed;
+        border:1px solid #fdba74;
+        border-left:4px solid #f97316;
+        color:#9a3412;
+        border-radius:10px;
+        padding:10px 12px;
+        font-weight:800;
+        line-height:1.6;
+      }
+
+      @media (max-width: 900px) {
+        .date-time-row { grid-template-columns:repeat(2, minmax(0,1fr)); }
+      }
+      @media (max-width: 640px) {
+        h1 { font-size:26px; }
+        .container { padding:18px; }
+        .complete-grid { grid-template-columns:1fr; gap:4px; }
+        .date-time-row { grid-template-columns:1fr; }
+      }
     </style>
   </head>
   <body>
@@ -36,6 +111,7 @@
       <p class="muted">借用開始日と返却日を入力後、「借用物品を再読込」を押してください。</p>
       <p class="muted">物品画像一覧（別資料）: <a href="https://kanagawa-u.box.com/s/gp9fhj9hrlbysisik7tm77379xx8x5ho" target="_blank" rel="noopener noreferrer">https://kanagawa-u.box.com/s/gp9fhj9hrlbysisik7tm77379xx8x5ho</a></p>
 
+      <div class="section-title">申請者情報</div>
       <div class="grid">
         <div class="field"><label>申請部署</label><input id="department" /></div>
         <div class="field"><label>申請者氏名</label><input id="applicant" /></div>
@@ -43,6 +119,10 @@
         <div class="field"><label>Tel</label><input id="tel" /></div>
         <div class="field"><label>使用目的</label><input id="usagePurpose" /></div>
         <div class="field"><label>責任者氏名 <span class="muted">※ 事務局からの申請の場合は部署長名</span></label><input id="responsiblePerson" /></div>
+      </div>
+
+      <div class="section-title">借用日程</div>
+      <div class="date-time-row">
         <div class="field"><label>借用開始日</label><input id="startDate" type="date" /></div>
         <div class="field"><label>受取時間</label><div class="time-pair"><select id="pickupHour"></select><span>:</span><select id="pickupMinute"></select></div></div>
         <div class="field"><label>返却日</label><input id="endDate" type="date" /></div>
@@ -105,7 +185,7 @@
           for (let q=1; q <= (item.maxSelectable||0); q++) options.push(`<option value="${q}">${q}</option>`);
           const card = document.createElement('div');
           card.className='item-card';
-          card.innerHTML = `<div><strong>${escapeHtml(item.name)}</strong></div><div class="muted">受取・返却場所: ${escapeHtml(item.pickupReturnPlace || '未設定')}</div><div style="margin-top:10px;"><label>数量</label><select id="qty-${idx}" ${item.maxSelectable===0?'disabled':''}>${options.join('')}</select></div>`;
+          card.innerHTML = `<div class="item-name"><strong>${escapeHtml(item.name)}</strong></div><div class="pickup-place-badge">受取・返却場所: ${escapeHtml(item.pickupReturnPlace || '未設定')}</div><div style="margin-top:10px;"><label>数量</label><select id="qty-${idx}" ${item.maxSelectable===0?'disabled':''}>${options.join('')}</select></div>`;
           root.appendChild(card);
         });
       }
@@ -157,10 +237,18 @@
           <div class="k">返却時間</div><div>${escapeHtml(summary.returnTime)}</div>`;
 
         document.getElementById('completeItems').innerHTML = (summary.items || [])
-          .map((item) => `<span class="pill">${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}（受取・返却場所: ${escapeHtml(item.pickupReturnPlace || '未設定')}）</span>`)
+          .map((item) => `
+            <div class="complete-item-card">
+              <div class="complete-item-head">
+                <span>${escapeHtml(item.name)}</span>
+                <span class="complete-item-qty">数量: ${escapeHtml(item.quantity)}</span>
+              </div>
+              <div class="complete-item-place">📍受取・返却場所: ${escapeHtml(item.pickupReturnPlace || '未設定')}</div>
+            </div>
+          `)
           .join('') || '<span class="muted">なし</span>';
 
-        const guide = '<div class="muted" style="margin-top:8px;">物品の受取・返却は指定の「受取・返却場所」にて行ってください。</div>';
+        const guide = '<div class="pickup-guide">物品の受取・返却は指定の「受取・返却場所」にて行ってください。</div>';
 
         document.getElementById('completeItems').insertAdjacentHTML('beforeend', guide);
 
