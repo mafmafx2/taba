@@ -31,7 +31,7 @@
         <h2>物品マスタ</h2>
         <p>物品の追加/削除、初期在庫（数量上限）、有効/無効を管理します。</p>
         <table id="masterTable">
-          <thead><tr><th>物品コード</th><th>物品名</th><th>初期在庫</th><th>有効</th><th>削除</th></tr></thead>
+          <thead><tr><th>物品コード</th><th>物品名</th><th>初期在庫</th><th>受取・返却場所</th><th>有効</th><th>削除</th></tr></thead>
           <tbody></tbody>
         </table>
         <div class="actions">
@@ -84,13 +84,14 @@
         items.forEach((item) => addMasterRow(item));
       }
 
-      function addMasterRow(item = { code: '', name: '', stock: 0, active: true }) {
+      function addMasterRow(item = { code: '', name: '', stock: 0, pickupReturnPlace: '', active: true }) {
         const tbody = document.querySelector('#masterTable tbody');
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><input type="text" class="code" value="${item.code}"></td>
           <td><input type="text" class="name" value="${item.name}"></td>
           <td><input type="number" class="stock" min="0" value="${item.stock}"></td>
+          <td><input type="text" class="pickup-return-place" value="${item.pickupReturnPlace || ''}"></td>
           <td style="text-align:center;"><input type="checkbox" class="active" ${item.active ? 'checked' : ''}></td>
           <td style="text-align:center;"><button type="button" class="secondary" onclick="this.closest('tr').remove()">削除</button></td>`;
         tbody.appendChild(tr);
@@ -102,6 +103,7 @@
           code: tr.querySelector('.code').value.trim(),
           name: tr.querySelector('.name').value.trim(),
           stock: Number(tr.querySelector('.stock').value || 0),
+          pickupReturnPlace: tr.querySelector('.pickup-return-place').value.trim(),
           active: tr.querySelector('.active').checked,
         })).filter((x) => x.code && x.name);
 

@@ -27,18 +27,20 @@ const APPLICATION_COLUMNS = {
   applicant: 6,
   email: 7,
   tel: 8,
-  startDate: 9,
-  pickupTime: 10,
-  endDate: 11,
-  returnTime: 12,
-  itemCode: 13,
-  itemName: 14,
-  quantity: 15,
-  applicationStatus: 16,
-  resolveReason: 17,
-  preparationStatus: 18,
-  note: 19,
-  total: 19,
+  usagePurpose: 9,
+  responsiblePerson: 10,
+  startDate: 11,
+  pickupTime: 12,
+  endDate: 13,
+  returnTime: 14,
+  itemCode: 15,
+  itemName: 16,
+  quantity: 17,
+  applicationStatus: 18,
+  resolveReason: 19,
+  preparationStatus: 20,
+  note: 21,
+  total: 21,
 };
 
 function onOpen() {
@@ -251,6 +253,8 @@ function adjustApplicationSheetLayout_(sheet) {
   sheet.setColumnWidth(APPLICATION_COLUMNS.applicationStatus, 120);
   sheet.setColumnWidth(APPLICATION_COLUMNS.resolveReason, 180);
   sheet.setColumnWidth(APPLICATION_COLUMNS.preparationStatus, 130);
+  sheet.setColumnWidth(APPLICATION_COLUMNS.usagePurpose, 180);
+  sheet.setColumnWidth(APPLICATION_COLUMNS.responsiblePerson, 170);
   sheet.setColumnWidth(APPLICATION_COLUMNS.note, 220);
 }
 
@@ -265,7 +269,7 @@ function doGet(e) {
 
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
-    .setTitle('物品貸出申請フォーム')
+    .setTitle('物品借用申請フォーム')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
@@ -277,10 +281,10 @@ function initializeSheets() {
   const appSs = getApplicationSpreadsheet_();
 
   const appHeaders = [
-    '登録日時', '申請No', '通番', 'チェック', '申請部署', '申請者氏名', 'メールアドレス', 'Tel',
+    '登録日時', '申請No', '通番', 'チェック', '申請部署', '申請者氏名', 'メールアドレス', 'Tel', '使用目的', '責任者氏名',
     '借用開始日', '受取時間', '返却日', '返却時間', '物品コード', '物品名', '数量', '申請状況', '解決理由', '準備状況', '備考'
   ];
-  const masterHeaders = ['物品コード', '物品名', '初期在庫', '有効'];
+  const masterHeaders = ['物品コード', '物品名', '初期在庫', '受取・返却場所', '有効'];
   const sequenceHeaders = ['最新連番'];
   const managerHeaders = ['氏名', 'メールアドレス', '有効'];
 
@@ -301,6 +305,7 @@ function getAvailableItems() {
     code: item.code,
     name: item.name,
     maxSelectable: Math.max(Number(item.stock) || 0, 0),
+    pickupReturnPlace: item.pickupReturnPlace || '',
   }));
 }
 
@@ -340,6 +345,8 @@ function submitApplication(formData) {
         formData.applicant,
         formData.email,
         formData.tel,
+        formData.usagePurpose,
+        formData.responsiblePerson,
         startDate,
         formData.pickupTime,
         endDate,
@@ -390,6 +397,8 @@ function buildApplicationSummary_(applicationNo, formData, masterMap, startDate,
     applicant: formData.applicant,
     email: formData.email,
     tel: formData.tel,
+    usagePurpose: formData.usagePurpose,
+    responsiblePerson: formData.responsiblePerson,
     startDate: Utilities.formatDate(startDate, tz, 'yyyy-MM-dd'),
     pickupTime: formData.pickupTime,
     endDate: Utilities.formatDate(endDate, tz, 'yyyy-MM-dd'),
@@ -397,6 +406,7 @@ function buildApplicationSummary_(applicationNo, formData, masterMap, startDate,
     items: formData.items.map((item) => ({
       name: masterMap[item.code] ? masterMap[item.code].name : item.code,
       quantity: Number(item.quantity),
+      pickupReturnPlace: masterMap[item.code] ? (masterMap[item.code].pickupReturnPlace || '') : '',
     })),
   };
 }
@@ -415,6 +425,8 @@ function sendApplicationMail_(summary) {
     `申請者氏名: ${summary.applicant}`,
     `メールアドレス: ${summary.email}`,
     `Tel: ${summary.tel}`,
+    `使用目的: ${summary.usagePurpose}` ,
+    `責任者氏名: ${summary.responsiblePerson}` ,
     `借用開始日: ${summary.startDate}`,
     `受取時間: ${summary.pickupTime}`,
     `返却日: ${summary.endDate}`,
@@ -447,6 +459,8 @@ function sendAdminNotificationMail_(summary) {
     `申請者氏名: ${summary.applicant}`,
     `メールアドレス: ${summary.email}`,
     `Tel: ${summary.tel}`,
+    `使用目的: ${summary.usagePurpose}` ,
+    `責任者氏名: ${summary.responsiblePerson}` ,
     `借用開始日: ${summary.startDate}`,
     `受取時間: ${summary.pickupTime}`,
     `返却日: ${summary.endDate}`,
@@ -630,10 +644,11 @@ function saveMasterData(payload) {
     item.code,
     item.name,
     Number(item.stock),
+    item.pickupReturnPlace || '',
     item.active ? 'TRUE' : 'FALSE',
   ]);
 
-  const header = ['物品コード', '物品名', '初期在庫', '有効'];
+  const header = ['物品コード', '物品名', '初期在庫', '受取・返却場所', '有効'];
   sheet.clearContents();
   sheet.getRange(1, 1, 1, header.length).setValues([header]);
 
@@ -704,8 +719,8 @@ function applyWorkbookStyle_() {
     applications.setFrozenRows(1);
     applications.getRange('A:A').setNumberFormat('yyyy-mm-dd hh:mm');
     applications.getRange('B:B').setNumberFormat('@');
-    applications.getRange('I:I').setNumberFormat('yyyy-mm-dd');
     applications.getRange('K:K').setNumberFormat('yyyy-mm-dd');
+    applications.getRange('M:M').setNumberFormat('yyyy-mm-dd');
     applyPreparationStatusValidation_(applications);
     adjustApplicationSheetLayout_(applications);
   }
@@ -764,14 +779,15 @@ function getMasterItems_() {
   const lastRow = sheet.getLastRow();
   if (lastRow < 2) return [];
 
-  const rows = sheet.getRange(2, 1, lastRow - 1, 4).getValues();
+  const rows = sheet.getRange(2, 1, lastRow - 1, 5).getValues();
   return rows
     .filter((r) => r[0] && r[1])
     .map((r) => ({
       code: String(r[0]).trim(),
       name: String(r[1]).trim(),
       stock: Number(r[2]) || 0,
-      active: String(r[3]).toUpperCase() !== 'FALSE',
+      pickupReturnPlace: String(r[3] || '').trim(),
+      active: String(r[4]).toUpperCase() !== 'FALSE',
     }));
 }
 
@@ -1029,7 +1045,7 @@ function normalizeDate_(date) {
 
 function validateForm_(formData) {
   const required = [
-    'department', 'applicant', 'email', 'tel',
+    'department', 'applicant', 'email', 'tel', 'usagePurpose', 'responsiblePerson',
     'startDate', 'pickupTime', 'endDate', 'returnTime', 'items'
   ];
 

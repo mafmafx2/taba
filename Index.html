@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>物品貸出申請フォーム</title>
+    <title>物品借用申請フォーム</title>
     <style>
       :root { --bg:#f3f6ff; --card:#ffffffcc; --line:#dbe4ff; --text:#1f2a44; --muted:#60719a; --primary:#4f46e5; --primary2:#7c3aed; }
       * { box-sizing: border-box; }
@@ -32,7 +32,7 @@
   </head>
   <body>
     <div class="container" id="formPage">
-      <h1>物品貸出申請フォーム</h1>
+      <h1>物品借用申請フォーム</h1>
       <p class="muted">借用開始日と返却日を入力後、「借用物品を再読込」を押してください。</p>
       <p class="muted">物品画像一覧（別資料）: <a href="https://kanagawa-u.box.com/s/gp9fhj9hrlbysisik7tm77379xx8x5ho" target="_blank" rel="noopener noreferrer">https://kanagawa-u.box.com/s/gp9fhj9hrlbysisik7tm77379xx8x5ho</a></p>
 
@@ -41,6 +41,8 @@
         <div class="field"><label>申請者氏名</label><input id="applicant" /></div>
         <div class="field"><label>メールアドレス</label><input id="email" type="email" /></div>
         <div class="field"><label>Tel</label><input id="tel" /></div>
+        <div class="field"><label>使用目的</label><input id="usagePurpose" /></div>
+        <div class="field"><label>責任者氏名 <span class="muted">※ 事務局からの申請の場合は部署長名</span></label><input id="responsiblePerson" /></div>
         <div class="field"><label>借用開始日</label><input id="startDate" type="date" /></div>
         <div class="field"><label>受取時間</label><div class="time-pair"><select id="pickupHour"></select><span>:</span><select id="pickupMinute"></select></div></div>
         <div class="field"><label>返却日</label><input id="endDate" type="date" /></div>
@@ -103,7 +105,7 @@
           for (let q=1; q <= (item.maxSelectable||0); q++) options.push(`<option value="${q}">${q}</option>`);
           const card = document.createElement('div');
           card.className='item-card';
-          card.innerHTML = `<div><strong>${escapeHtml(item.name)}</strong></div><div style="margin-top:10px;"><label>数量</label><select id="qty-${idx}" ${item.maxSelectable===0?'disabled':''}>${options.join('')}</select></div>`;
+          card.innerHTML = `<div><strong>${escapeHtml(item.name)}</strong></div><div class="muted">受取・返却場所: ${escapeHtml(item.pickupReturnPlace || '未設定')}</div><div style="margin-top:10px;"><label>数量</label><select id="qty-${idx}" ${item.maxSelectable===0?'disabled':''}>${options.join('')}</select></div>`;
           root.appendChild(card);
         });
       }
@@ -119,6 +121,8 @@
           applicant: document.getElementById('applicant').value,
           email: document.getElementById('email').value,
           tel: document.getElementById('tel').value,
+          usagePurpose: document.getElementById('usagePurpose').value,
+          responsiblePerson: document.getElementById('responsiblePerson').value,
           startDate: document.getElementById('startDate').value,
           pickupTime: getSelectedTime('pickup'),
           endDate: document.getElementById('endDate').value,
@@ -145,14 +149,20 @@
           <div class="k">申請者氏名</div><div>${escapeHtml(summary.applicant)}</div>
           <div class="k">メールアドレス</div><div>${escapeHtml(summary.email)}</div>
           <div class="k">Tel</div><div>${escapeHtml(summary.tel)}</div>
+          <div class="k">使用目的</div><div>${escapeHtml(summary.usagePurpose)}</div>
+          <div class="k">責任者氏名</div><div>${escapeHtml(summary.responsiblePerson)}</div>
           <div class="k">借用開始日</div><div>${escapeHtml(summary.startDate)}</div>
           <div class="k">受取時間</div><div>${escapeHtml(summary.pickupTime)}</div>
           <div class="k">返却日</div><div>${escapeHtml(summary.endDate)}</div>
           <div class="k">返却時間</div><div>${escapeHtml(summary.returnTime)}</div>`;
 
         document.getElementById('completeItems').innerHTML = (summary.items || [])
-          .map((item) => `<span class="pill">${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}</span>`)
+          .map((item) => `<span class="pill">${escapeHtml(item.name)} × ${escapeHtml(item.quantity)}（受取・返却場所: ${escapeHtml(item.pickupReturnPlace || '未設定')}）</span>`)
           .join('') || '<span class="muted">なし</span>';
+
+        const guide = '<div class="muted" style="margin-top:8px;">物品の受取・返却は指定の「受取・返却場所」にて行ってください。</div>';
+
+        document.getElementById('completeItems').insertAdjacentHTML('beforeend', guide);
 
         document.getElementById('formPage').style.display = 'none';
         document.getElementById('completionPage').style.display = 'block';
